@@ -1,9 +1,6 @@
 use nom::{
-    branch::alt,
-    bytes::complete::{tag, take_until},
     character::{
         complete::{alphanumeric1, line_ending},
-        is_digit,
     },
     combinator::map,
     multi::separated_list1,
@@ -38,24 +35,22 @@ impl Day01 {
                     output.0 = digit;
                 }
                 output.1 = digit.unwrap()
-            } else {
-                if let Some(number) = match &input[pos..] {
-                    s if s.starts_with("one") => Some(1),
-                    s if s.starts_with("two") => Some(2),
-                    s if s.starts_with("three") => Some(3),
-                    s if s.starts_with("four") => Some(4),
-                    s if s.starts_with("five") => Some(5),
-                    s if s.starts_with("six") => Some(6),
-                    s if s.starts_with("seven") => Some(7),
-                    s if s.starts_with("eight") => Some(8),
-                    s if s.starts_with("nine") => Some(9),
-                    _ => None,
-                } {
-                    if output.0.is_none() {
-                        output.0 = Some(number);
-                    }
-                    output.1 = number
+            } else if let Some(number) = match &input[pos..] {
+                s if s.starts_with("one") => Some(1),
+                s if s.starts_with("two") => Some(2),
+                s if s.starts_with("three") => Some(3),
+                s if s.starts_with("four") => Some(4),
+                s if s.starts_with("five") => Some(5),
+                s if s.starts_with("six") => Some(6),
+                s if s.starts_with("seven") => Some(7),
+                s if s.starts_with("eight") => Some(8),
+                s if s.starts_with("nine") => Some(9),
+                _ => None,
+            } {
+                if output.0.is_none() {
+                    output.0 = Some(number);
                 }
+                output.1 = number
             }
         });
         (output.0.unwrap(), output.1)
@@ -79,7 +74,7 @@ impl Day for Day01 {
         input
             .iter()
             .map(|s| Self::first_last_digits(s))
-            .map(|s| Self::combine_nums(s))
+            .map(Self::combine_nums)
             .sum()
     }
 
@@ -89,7 +84,7 @@ impl Day for Day01 {
         input
             .iter()
             .map(|s| Self::first_last_digits_words(s))
-            .map(|s| Self::combine_nums(s))
+            .map(Self::combine_nums)
             .sum()
     }
 }

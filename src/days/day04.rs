@@ -1,6 +1,4 @@
 use std::{
-    collections::{HashSet, VecDeque},
-    hash::Hasher,
     ops::RangeInclusive,
 };
 
@@ -35,7 +33,7 @@ impl Card {
         } else {
             let mut score = 1;
             for _ in 0..(num_matches - 1) {
-                score = score * 2
+                score *= 2
             }
             score
         }
@@ -56,7 +54,7 @@ impl Card {
         if self.num_matches() == 0 {
             None
         } else {
-            Some(((self.index as usize) + 1..=(self.index as usize + self.num_matches())))
+            Some((self.index as usize) + 1..=(self.index as usize + self.num_matches()))
         }
     }
 }
@@ -119,7 +117,7 @@ impl Day for Day04 {
                 // );
                 // cards_won = cards_won + score; // increment the count
                 for index in wins {
-                    cards_won = cards_won + 1;
+                    cards_won += 1;
                     cards_to_check.push(index)
                 }
             }

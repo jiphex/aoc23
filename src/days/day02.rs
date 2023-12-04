@@ -1,10 +1,10 @@
-use clap::builder::OsStr;
+
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::{digit1, line_ending, newline, not_line_ending, space1, u64},
+    character::complete::{newline, space1, u64},
     combinator::map,
-    multi::{separated_list0, separated_list1},
+    multi::{separated_list1},
     sequence::{separated_pair, tuple},
     IResult,
 };
