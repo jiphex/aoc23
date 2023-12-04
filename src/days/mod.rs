@@ -1,6 +1,6 @@
 use crate::parser::MyErr;
 use crate::Instant;
-use nom::IResult;
+use nom::{combinator::all_consuming, IResult};
 use std::fmt::Display;
 use std::fs::read_to_string;
 
@@ -48,30 +48,24 @@ pub trait Day {
 
     fn part_2(input: &Self::Input) -> Self::Output2;
 
-    fn parse_file(fp: &str) -> Result<InputRest<Self::Input>, MyErr> {
+    fn parse_file(fp: &str) -> Result<Self::Input, MyErr> {
         let input_string = read_to_string(fp)?;
-        let (rest, input) = Self::parse(&input_string)?;
-        Ok(InputRest {
-            input,
-            was_more: !rest.is_empty(),
-        })
+        let (_, input) = all_consuming(Self::parse)(&input_string)?;
+        Ok(input)
     }
 
     fn run_day(fp: &str) {
         match Self::parse_file(fp) {
             Err(e) => println!("Unable to parse file: {:?}", e),
             Ok(input) => {
-                if input.was_more {
-                    panic!("parser didn't use up all of the input!");
-                }
                 let before1 = Instant::now();
-                println!("Part 1: {}", Self::part_1(&input.input));
+                println!("Part 1: {}", Self::part_1(&input));
                 println!(
                     "Part 1 took {}ms",
                     before1.elapsed().as_nanos() as f32 / 1e6
                 );
                 let before2 = Instant::now();
-                println!("Part 2: {}", Self::part_2(&input.input));
+                println!("Part 2: {}", Self::part_2(&input));
                 println!(
                     "Part 2 took {}ms",
                     before2.elapsed().as_nanos() as f32 / 1e6
