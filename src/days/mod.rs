@@ -51,7 +51,6 @@ pub trait Day {
     fn parse_file(fp: &str) -> Result<InputRest<Self::Input>, MyErr> {
         let input_string = read_to_string(fp)?;
         let (rest, input) = Self::parse(&input_string)?;
-        println!(">>{rest:?}");
         Ok(InputRest {
             input,
             was_more: !rest.is_empty(),
