@@ -46,25 +46,22 @@ impl Ord for Roundtrip {
 }
 
 impl Almanac {
-    fn map_all_seeds_p1(&self) -> Vec<Roundtrip> {
-        let mut out: Vec<Roundtrip> = Vec::with_capacity(self.seed_input.len());
+    fn map_all_seeds_p1(&self) -> u64 {
+        let mut lowest_seen = (u64::MAX, u64::MAX);
         for seed in &self.seed_input {
-            // println!("processing seed {seed}");
             let mut cur_number = *seed;
             for map in &self.maps {
-                // println!("processing map {:}", map.to_string());
                 cur_number = map.map(cur_number);
             }
-            out.push(Roundtrip {
-                start_seed: *seed,
-                end_dest: cur_number,
-            })
+            if cur_number < lowest_seen.0 {
+                lowest_seen = (cur_number, *seed);
+            }
         }
-        out
+        lowest_seen.1
     }
 
-    fn map_all_seeds_p2(&self) -> Vec<Roundtrip> {
-        let mut out: Vec<Roundtrip> = Vec::with_capacity(self.seed_input.len());
+    fn map_all_seeds_p2(&self) -> u64 {
+        let mut lowest_seen = (u64::MAX, u64::MAX);
         let chunks = self.seed_input.chunks(2);
         let mut index = 1;
         for chunk in chunks {
@@ -81,14 +78,13 @@ impl Almanac {
                 for map in &self.maps {
                     cur_number = map.map(cur_number);
                 }
-                out.push(Roundtrip {
-                    start_seed: seed,
-                    end_dest: cur_number,
-                })
+                if cur_number < lowest_seen.0 {
+                    lowest_seen = (cur_number, seed)
+                }
             }
             index += 1
         }
-        out
+        lowest_seen.1
     }
 }
 
@@ -125,11 +121,44 @@ impl Map {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, PartialOrd, Eq)]
 struct MapRange {
     dest_start: u64,
     source_start: u64,
     range_length: u64,
+}
+
+mod test {
+    use super::MapRange;
+
+    #[test]
+    fn test_ordering() {
+        let res_a = MapRange {
+            dest_start: 10,
+            source_start: 1000,
+            range_length: 0,
+        };
+        let res_b = MapRange {
+            dest_start: 20,
+            source_start: 0,
+            range_length: 0,
+        };
+        assert!(res_b > res_a);
+        assert!(res_a < res_b);
+        let res_c: Option<MapRange> = None;
+        let res_d = MapRange {
+            dest_start: 10,
+            source_start: 0,
+            range_length: 0,
+        };
+        assert!(res_c < Some(res_d));
+    }
+}
+
+impl Ord for MapRange {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.dest_start.cmp(&other.dest_start)
+    }
 }
 
 impl MapRange {
@@ -228,24 +257,12 @@ impl Day for Day05 {
     type Output1 = u64;
 
     fn part_1(input: &Self::Input) -> Self::Output1 {
-        input
-            .map_all_seeds_p1()
-            .iter()
-            .map(|x| x.end_dest)
-            .sorted()
-            .next()
-            .unwrap()
+        input.map_all_seeds_p1()
     }
 
     type Output2 = u64;
 
     fn part_2(input: &Self::Input) -> Self::Output2 {
-        input
-            .map_all_seeds_p2()
-            .iter()
-            .map(|x| x.end_dest)
-            .sorted()
-            .next()
-            .unwrap()
+        input.map_all_seeds_p2()
     }
 }
