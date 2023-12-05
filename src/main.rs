@@ -4,6 +4,10 @@ use chrono::{Datelike, Local};
 use clap::{Parser, Subcommand};
 
 use days::*;
+use opentelemetry_otlp::WithExportConfig;
+use tracing::{event, span, Level};
+use tracing_opentelemetry::OpenTelemetryLayer;
+use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 mod days;
 mod parser;
@@ -37,9 +41,39 @@ enum Commands {
     },
 }
 
-fn main() {
-    let cli = Cli::parse();
+fn setup_tracing() {
+    let filtered =
+        tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or(EnvFilter::new("info"));
+    let fmt = Some(
+        tracing_subscriber::fmt::layer()
+            .with_target(false)
+            .compact(),
+    );
+    let jout = opentelemetry_otlp::new_exporter()
+        .tonic()
+        .with_endpoint("http://localhost:4317");
+    let jtracer = opentelemetry_otlp::new_pipeline()
+        .tracing()
+        .with_exporter(jout)
+        .install_batch(opentelemetry_sdk::runtime::Tokio)
+        .unwrap();
+    let tjaeger = tracing_opentelemetry::layer().with_tracer(jtracer);
+    tracing_subscriber::registry()
+        .with(tjaeger)
+        .with(filtered)
+        .with(fmt)
+        .init();
+}
 
+#[tokio::main]
+async fn main() {
+    setup_tracing();
+    let cli = {
+        let span = span!(Level::TRACE, "parsing args");
+        let _entered = span.enter();
+        event!(Level::INFO, "fwoop");
+        Cli::parse()
+    };
     match &cli.command {
         Commands::Run { day, all } => {
             if *all {
