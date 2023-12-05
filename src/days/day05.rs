@@ -86,6 +86,25 @@ impl Almanac {
         }
         lowest_seen.1
     }
+
+    /// Alternative implementation for p2 that should be faster (maybe..):
+    ///
+    /// 1. First, reverse the list of maps so we can do a backwards scan through
+    ///    them, starting with the location map.
+    /// 2. Then sort the location map so that we know which is the lowest
+    ///    destination numbers
+    /// 3. Trace through the first location map range (starting at 0) and map
+    ///    this all the way back through the full map (backwards) to get an
+    ///    input range of seeds that would map to that location
+    /// 4. Check the input list of seeds to see if any match
+    /// 5. Check the interim list of map ranges between this and the next to
+    ///    check if any seeds fit into that gap
+    /// 6. Move otni the next range, continue from (3) above until we find a
+    ///    seed that either fits one of the ranges, or one of the gaps
+    ///    in-between, then return it
+    fn map_all_seeds_p2_reverse(&self) -> u64 {
+        let rev_maps: Vec<&Map> = self.maps.iter().rev().collect();
+    }
 }
 
 #[derive(Debug)]
