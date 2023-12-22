@@ -1,8 +1,36 @@
-use nom::IResult;
+use nom::{
+    branch::alt,
+    character::{complete::alpha1, is_digit},
+    combinator::map_res,
+    Err, IResult,
+};
 
 use crate::days::Day;
 
 pub struct Day07;
+
+pub enum Card {
+    King,
+    Queen,
+    Jack,
+    Ace,
+    Number(u8),
+}
+
+impl Day07 {
+    fn parse_cards(input: &str) -> IResult<&str, Vec<Card>> {
+        map_res(alpha1, |t: &str| {
+            t.chars()
+                .map(|card| {
+                    return match t {
+                        // card if card == 'K' => Ok(Card::King),
+                        _ => Err("foo"),
+                    };
+                })
+                .collect()
+        })(input)
+    }
+}
 
 impl Day for Day07 {
     type Input = String;
