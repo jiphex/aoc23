@@ -1,5 +1,6 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, path::Display};
 
+use itertools::Itertools;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -90,6 +91,63 @@ fn create_btm(input: &Map) -> FlatMap {
     map
 }
 
+struct Follower<'lt> {
+    start_at: String,
+    current_node: Option<String>,
+    map_ref: &'lt FlatMap<'lt>,
+    step_count: usize,
+}
+
+impl<'a, 'lt> Follower<'lt> {
+    pub fn new(start_at: &'a str, map: &'lt FlatMap) -> Self {
+        Self {
+            start_at: start_at.to_string(),
+            map_ref: map,
+            current_node: None,
+            step_count: 0,
+        }
+    }
+
+    pub fn step(&mut self, using: &Direction) -> bool {
+        if self.current_node.is_none() {
+            self.current_node = Some(self.start_at.clone());
+        }
+        let targets = self
+            .map_ref
+            .get(&self.current_node.as_ref().unwrap().as_str())
+            .expect("unable to find node in map");
+        let next_step = match using {
+            Direction::Left => targets.0,
+            Direction::Right => targets.1,
+        };
+        self.current_node = Some(next_step.to_string());
+        self.step_count += 1;
+        self.is_completed()
+    }
+
+    pub fn is_completed(&self) -> bool {
+        self.current_node.as_ref().is_some_and(|c| c.ends_with('Z'))
+    }
+
+    pub fn step_count(&self) -> usize {
+        self.step_count
+    }
+}
+
+impl std::fmt::Debug for Follower<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Follower")
+            .field("start_at", &self.start_at)
+            .field("current_node", &self.current_node)
+            .field("map_ref", &self.map_ref)
+            .field("step_count", &self.step_count)
+            .finish()
+    }
+}
+
+// fn count_partitions<T>(input: (Vec<T>,Vec<T>)) -> (usize,usize) {
+// }
+
 impl Day for Day08 {
     type Input = Map;
 
@@ -125,40 +183,18 @@ impl Day for Day08 {
 
     fn part_2(input: &Self::Input) -> Self::Output2 {
         let map = create_btm(input);
-        let mut running_items: Vec<(&str, &str, usize)> = input
+        let mut running_items: Vec<Follower> = input
             .nodes
             .iter()
-            .filter(|c| c.node.ends_with("A"))
-            .map(|t| (t.node.as_str(), t.node.as_str(), 0))
+            .map(|c| c.node.as_str())
+            .filter(|s| s.ends_with('A'))
+            .map(|c| {Follower::new(c, &map)})
             .collect();
-        let mut cycle_count = 0;
-        let mut completed_seen: usize = 0;
         for dir in input.lr_instructions.iter().cycle() {
-            for (start_node, next_node, iters) in running_items.iter_mut() {
-                let new_next_node = sided(map.get(next_node).unwrap(), dir);
-                *next_node = new_next_node;
-                if next_node.ends_with("Z") {
-                    // println!(
-                    //     // "node {start_node} moved to end state {next_node} in {iters} iterations"
-                    // );
-                } else {
-                    // println!("node {start_node} is still moving towards its end state, currently at {next_node} in {iters} iterations");
-                    *iters += 1;
-                }
-            }
-            // println!("map {running_items:?}");
-            cycle_count += 1;
-            let completed = running_items.iter().filter(|i| i.1.ends_with("Z")).count();
-            if completed == running_items.len() {
-                println!("all items completed");
-                break;
-            } else {
-                if completed > completed_seen {
-                    println!("{:?}/{} items at end state", completed, running_items.len());
-                    completed_seen = completed;
-                }
-            }
+            // let (a,b) = running_items.iter_mut().part(|c|c.step(dir)); {
+                // println!("all done")
+            // }
         }
-        cycle_count
+        0_usize
     }
 }

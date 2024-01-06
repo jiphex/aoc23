@@ -1,3 +1,4 @@
+#![warn(rust_2018_idioms)]
 use std::{fs, time::Instant};
 
 use chrono::{Datelike, Local};
